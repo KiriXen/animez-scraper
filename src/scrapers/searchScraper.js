@@ -72,7 +72,7 @@ const scrapeSearch = async (query, options = {}) => {
             results.push({
                 id,
                 title,
-                image: image ? `${image}` : null,
+                image: image ? `${BASE_URL.replace(/\/$/, "")}/${image.replace(/^\//, "")}` : null,
                 episodes,
                 url: link ? `${BASE_URL}${link}` : null
             });

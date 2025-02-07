@@ -3,6 +3,41 @@ const cheerio = require("cheerio");
 
 const BASE_URL = "https://animez.org";
 
+const scrapeTopAnime = async () => {
+    try {
+        const url = BASE_URL;
+        const { data } = await axios.get(url);
+        const $ = cheerio.load(data);
+
+        const topAnimeList = [];
+
+        $(".MovieListTop .TPostMv").each((_, element) => {
+            const anime = $(element);
+            const link = anime.find("a").attr("href");
+            const title = anime.find(".Title").text().trim();
+            const image = anime.find("img").attr("src");
+            const episodes = anime.find(".mli-eps i").text().trim();
+            const rating = anime.find(".anime-avg-user-rating").text().trim() || "N/A";
+
+            const id = link?.split("/").filter(Boolean).pop() || "";
+
+            topAnimeList.push({
+                id,
+                title,
+                image: image ? `${BASE_URL.replace(/\/$/, "")}/${image.replace(/^\//, "")}` : null,
+                episodes,
+                rating,
+                url: link ? `${BASE_URL}${link}` : null
+            });
+        });
+
+        return topAnimeList;
+    } catch (error) {
+        console.error("Error scraping top anime:", error.message);
+        return [];
+    }
+};
+
 const scrapeLatestAnime = async (page = 1) => {
     try {
         const url = `${BASE_URL}/?act=home&pageNum=${page}#pages`;
@@ -12,13 +47,15 @@ const scrapeLatestAnime = async (page = 1) => {
 
         $("ul.MovieList.Rows .TPostMv").each((_, element) => {
             const title = $(element).find(".Title").text().trim();
-            const animeUrl = BASE_URL + $(element).find("a").attr("href");
+            const animeUrl = $(element).find("a").attr("href");
             const image = BASE_URL + "/" + $(element).find("img").attr("src");
             const episode = $(element).find(".mli-eps i").text().trim();
             const views = $(element).find(".Year").text().replace("View ", "").trim();
-            const rating = $(element).find(".anime-avg-user-rating i.fa-star").next().text().trim() || "N/A";
+            const rating = $(element).find(".anime-extras .anime-avg-user-rating").text().trim() || "N/A";
 
-            animeList.push({ title, url: animeUrl, image, episode, views, rating });
+            const id = animeUrl?.split('/').filter(Boolean).pop() || '';
+
+            animeList.push({ title, id, image, episode, views, rating });
         });
 
         return animeList;
@@ -35,7 +72,7 @@ const scrapeAnimeDetails = async (animeId, type = 'sub') => {
         
         const title = $("h2.SubTitle").text().trim();
         
-        const image = $(".Image figure img").attr("src");
+        const image = BASE_URL + "/" + $(".Image figure img").attr("src");
         
         const infoList = $(".InfoList li");
         let alternativeNames = "N/A";
@@ -119,4 +156,4 @@ const scrapeAnimeDetails = async (animeId, type = 'sub') => {
     }
 };
 
-module.exports = { scrapeLatestAnime, scrapeAnimeDetails };
+module.exports = { scrapeLatestAnime, scrapeAnimeDetails, scrapeTopAnime };

@@ -1,11 +1,12 @@
 const express = require("express");
-const { getLatestAnime, getAnimeDetails } = require("../controllers/animeController");
+const { getLatestAnime, getAnimeDetails, getTopAnime } = require("../controllers/animeController");
 const { getEpisodeVideo } = require("../controllers/episodeController");
 const { searchAnime } = require("../controllers/searchController");
 const { getAnimeByGenre } = require("../controllers/genreController");
 
 const router = express.Router();
 
+router.get("/top", getTopAnime);
 router.get("/latest", getLatestAnime);
 router.get("/search", searchAnime);
 router.get("/genre/:genre", getAnimeByGenre);

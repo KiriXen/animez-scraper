@@ -72,7 +72,7 @@ const scrapeGenre = async (genre, options = {}) => {
             results.push({
                 id,
                 title,
-                image: image ? `${image}` : null,
+                image: image ? `${BASE_URL.replace(/\/$/, "")}/${image.replace(/^\//, "")}` : null,
                 episodes: parseInt(episodes) || 0,
                 url: link ? `${BASE_URL}${link}` : null
             });
