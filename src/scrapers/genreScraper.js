@@ -3,6 +3,26 @@ const cheerio = require("cheerio");
 
 const BASE_URL = "https://animez.org";
 
+const STATUS_OPTIONS = {
+    all: "All",
+    complete: "Complete",
+    "in-process": "In process",
+    pause: "Pause"
+};
+
+const SORT_OPTIONS = {
+    "lastest-chap": "Latest update",
+    hot: "Hot",
+    "lastest-manga": "New",
+    "top-manga": "Top all",
+    "top-month": "Top month",
+    "top-week": "Top week",
+    "top-day": "Top day",
+    follow: "Follow",
+    comment: "Comment",
+    "num-chap": "Num. Episode"
+};
+
 const scrapeGenre = async (genre, options = {}) => {
     try {
         const {
@@ -39,6 +59,7 @@ const scrapeGenre = async (genre, options = {}) => {
             });
         });
 
+        const results = [];
         $('.MovieList .TPostMv').each((_, element) => {
             const anime = $(element);
             const link = anime.find('a').attr('href');
@@ -99,4 +120,4 @@ const scrapeGenre = async (genre, options = {}) => {
     }
 };
 
-module.exports = { scrapeGenre };
+module.exports = { scrapeGenre, STATUS_OPTIONS, SORT_OPTIONS };

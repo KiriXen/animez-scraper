@@ -1,4 +1,4 @@
-const { scrapeGenre } = require("../scrapers/genreScraper");
+const { scrapeGenre, STATUS_OPTIONS, SORT_OPTIONS } = require("../scrapers/genreScraper");
 
 const getAnimeByGenre = async (req, res) => {
     const { genre } = req.params;
@@ -11,9 +11,14 @@ const getAnimeByGenre = async (req, res) => {
             page: parseInt(page) || 1
         });
 
-        const { filters, ...responseWithoutFilters } = genreResults;
-
-        res.json(responseWithoutFilters);
+        res.json({
+            query: req.query,
+            availableOptions: {
+                status: STATUS_OPTIONS,
+                sortBy: SORT_OPTIONS
+            },
+            ...genreResults
+        });
     } catch (error) {
         res.status(500).json({ 
             error: "Failed to fetch genre results",

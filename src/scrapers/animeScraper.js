@@ -5,28 +5,26 @@ const BASE_URL = "https://animez.org";
 
 const scrapeLatestAnime = async (page = 1) => {
     try {
-        const response = await axios.get(`${BASE_URL}/page/${page}`);
-        const $ = cheerio.load(response.data);
+        const url = `${BASE_URL}/?act=home&pageNum=${page}#pages`;
+        const { data } = await axios.get(url);
+        const $ = cheerio.load(data);
         const animeList = [];
 
-        $("article.TPost").each((_, element) => {
-            const title = $(element).find("h2.Title").text().trim();
-            const link = $(element).find("a").attr("href");
-            const image = $(element).find("img").attr("src");
-            const id = link ? link.split("/").filter(Boolean).pop() : "";
+        $("ul.MovieList.Rows .TPostMv").each((_, element) => {
+            const title = $(element).find(".Title").text().trim();
+            const animeUrl = BASE_URL + $(element).find("a").attr("href");
+            const image = BASE_URL + "/" + $(element).find("img").attr("src");
+            const episode = $(element).find(".mli-eps i").text().trim();
+            const views = $(element).find(".Year").text().replace("View ", "").trim();
+            const rating = $(element).find(".anime-avg-user-rating i.fa-star").next().text().trim() || "N/A";
 
-            animeList.push({
-                id,
-                title,
-                link: `${BASE_URL}${link}`,
-                image
-            });
+            animeList.push({ title, url: animeUrl, image, episode, views, rating });
         });
 
         return animeList;
     } catch (error) {
-        console.error("Error scraping latest anime:", error);
-        throw error;
+        console.error("Error scraping anime:", error.message);
+        return [];
     }
 };
 
