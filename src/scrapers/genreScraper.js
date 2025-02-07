@@ -1,0 +1,109 @@
+const axios = require("axios");
+const cheerio = require("cheerio");
+
+const BASE_URL = "https://animez.org";
+
+const scrapeGenre = async (genre, options = {}) => {
+    try {
+        const {
+            status = 'all',
+            sortBy = 'lastest-chap',
+            page = 1
+        } = options;
+
+        // Construct genre URL
+        const genreUrl = `${BASE_URL}/?act=search&f[status]=${status}&f[sortby]=${sortBy}&f[genres]=${encodeURIComponent(genre)}&pageNum=${page}#pages`;
+
+        const response = await axios.get(genreUrl);
+        const $ = cheerio.load(response.data);
+        
+        // Get current active filters
+        const activeStatus = $('.Top .row:first-child .btn.active').text().trim().toLowerCase();
+        const activeSort = $('.Top .row:nth-child(2) .btn.active').text().trim();
+
+        // Extract status filters
+        const statusFilters = [];
+        $('.Top .row:first-child .btn').each((_, element) => {
+            const btn = $(element);
+            statusFilters.push({
+                value: btn.attr('href')?.match(/f\[status\]=([^&]+)/)?.[1] || 'all',
+                label: btn.text().trim(),
+                active: btn.hasClass('active')
+            });
+        });
+
+        // Extract sort filters
+        const sortFilters = [];
+        $('.Top .row:nth-child(2) .btn').each((_, element) => {
+            const btn = $(element);
+            sortFilters.push({
+                value: btn.attr('href')?.match(/f\[sortby\]=([^&]+)/)?.[1] || 'lastest-chap',
+                label: btn.text().trim(),
+                active: btn.hasClass('active')
+            });
+        });
+
+        // Extract anime results
+        const results = [];
+        $('.MovieList .TPostMv').each((_, element) => {
+            const anime = $(element);
+            const link = anime.find('a').attr('href');
+            const title = anime.find('h2.Title').text().trim();
+            const image = anime.find('img').attr('src');
+            const episodes = anime.find('.mli-eps').text().trim();
+            
+            const id = link?.split('/').filter(Boolean).pop() || '';
+
+            results.push({
+                id,
+                title,
+                image: image ? `${image}` : null,
+                episodes: parseInt(episodes) || 0,
+                url: link ? `${BASE_URL}${link}` : null
+            });
+        });
+
+        // Extract pagination
+        const pagination = {
+            currentPage: parseInt(page),
+            totalPages: 1,
+            hasNextPage: false,
+            hasPrevPage: false
+        };
+
+        $('.pagination .page-item').each((_, element) => {
+            const pageText = $(element).find('.page-link').text().trim();
+            if (pageText === 'Last') {
+                const lastPageHref = $(element).find('.page-link').attr('href');
+                const lastPageMatch = lastPageHref?.match(/pageNum=(\d+)/);
+                if (lastPageMatch) {
+                    pagination.totalPages = parseInt(lastPageMatch[1]);
+                }
+            }
+        });
+
+        pagination.hasNextPage = pagination.currentPage < pagination.totalPages;
+        pagination.hasPrevPage = pagination.currentPage > 1;
+
+        return {
+            genre,
+            filters: {
+                status: {
+                    options: statusFilters,
+                    active: activeStatus
+                },
+                sortBy: {
+                    options: sortFilters,
+                    active: activeSort
+                }
+            },
+            pagination,
+            results
+        };
+    } catch (error) {
+        console.error("Error scraping genre results:", error);
+        throw error;
+    }
+};
+
+module.exports = { scrapeGenre };

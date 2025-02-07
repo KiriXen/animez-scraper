@@ -1,7 +1,7 @@
-const { scrapeLatestAnime } = require("../scrapers/animeScraper");
+const { scrapeLatestAnime, scrapeAnimeDetails } = require("../scrapers/animeScraper");
 
 const getLatestAnime = async (req, res) => {
-    const page = req.query.page || 1; // Default to page 1 if no query parameter is provided
+    const page = req.query.page || 1;
 
     try {
         const animeList = await scrapeLatestAnime(page);
@@ -11,4 +11,16 @@ const getLatestAnime = async (req, res) => {
     }
 };
 
-module.exports = { getLatestAnime };
+const getAnimeDetails = async (req, res) => {
+    const { animeId } = req.params;
+    const type = req.query.type?.toLowerCase() === 'dub' ? 'dub' : 'sub';
+
+    try {
+        const animeDetails = await scrapeAnimeDetails(animeId, type);
+        res.json(animeDetails);
+    } catch (error) {
+        res.status(500).json({ error: "Failed to fetch anime details" });
+    }
+};
+
+module.exports = { getLatestAnime, getAnimeDetails };
