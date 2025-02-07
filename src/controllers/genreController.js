@@ -11,7 +11,6 @@ const getAnimeByGenre = async (req, res) => {
             page: parseInt(page) || 1
         });
 
-        // Remove filters before sending response
         const { filters, ...responseWithoutFilters } = genreResults;
 
         res.json(responseWithoutFilters);

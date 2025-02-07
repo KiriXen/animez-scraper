@@ -35,13 +35,10 @@ const scrapeAnimeDetails = async (animeId, type = 'sub') => {
         const response = await axios.get(`${BASE_URL}/${animeId}`);
         const $ = cheerio.load(response.data);
         
-        // Get title
         const title = $("h2.SubTitle").text().trim();
         
-        // Get image
         const image = $(".Image figure img").attr("src");
         
-        // Get alternative names
         const infoList = $(".InfoList li");
         let alternativeNames = "N/A";
         let animeType = "Unknown";
@@ -72,19 +69,16 @@ const scrapeAnimeDetails = async (animeId, type = 'sub') => {
             }
         });
         
-        // Get summary
         const summary = $("#summary_shortened").text().trim() || "No summary available.";
         
-        // Get episodes and separate sub/dub
         const allEpisodes = [];
         $("#list_chapter_id_detail li").each((_, element) => {
             const episodeLink = $(element).find("a");
             const episodeNumber = episodeLink.text().trim();
             const episodeUrl = episodeLink.attr("href");
             
-            // Extract just the episode identifier from the URL
             const urlParts = episodeUrl.split("/");
-            const episodeId = urlParts[urlParts.length - 2]; // Get the second-to-last part
+            const episodeId = urlParts[urlParts.length - 2];
             
             allEpisodes.push({
                 number: episodeNumber,
@@ -93,7 +87,6 @@ const scrapeAnimeDetails = async (animeId, type = 'sub') => {
             });
         });
 
-        // Filter episodes based on type parameter
         const episodes = allEpisodes
             .filter(episode => episode.type === type)
             .map(episode => ({
@@ -105,7 +98,7 @@ const scrapeAnimeDetails = async (animeId, type = 'sub') => {
             .sort((a, b) => {
                 const numA = parseInt(a.number);
                 const numB = parseInt(b.number);
-                return numB - numA;  // Sort in descending order (newest first)
+                return numB - numA;
             });
         
         return {

@@ -11,17 +11,14 @@ const scrapeGenre = async (genre, options = {}) => {
             page = 1
         } = options;
 
-        // Construct genre URL
         const genreUrl = `${BASE_URL}/?act=search&f[status]=${status}&f[sortby]=${sortBy}&f[genres]=${encodeURIComponent(genre)}&pageNum=${page}#pages`;
 
         const response = await axios.get(genreUrl);
         const $ = cheerio.load(response.data);
         
-        // Get current active filters
         const activeStatus = $('.Top .row:first-child .btn.active').text().trim().toLowerCase();
         const activeSort = $('.Top .row:nth-child(2) .btn.active').text().trim();
 
-        // Extract status filters
         const statusFilters = [];
         $('.Top .row:first-child .btn').each((_, element) => {
             const btn = $(element);
@@ -32,7 +29,6 @@ const scrapeGenre = async (genre, options = {}) => {
             });
         });
 
-        // Extract sort filters
         const sortFilters = [];
         $('.Top .row:nth-child(2) .btn').each((_, element) => {
             const btn = $(element);
@@ -43,8 +39,6 @@ const scrapeGenre = async (genre, options = {}) => {
             });
         });
 
-        // Extract anime results
-        const results = [];
         $('.MovieList .TPostMv').each((_, element) => {
             const anime = $(element);
             const link = anime.find('a').attr('href');
@@ -63,7 +57,6 @@ const scrapeGenre = async (genre, options = {}) => {
             });
         });
 
-        // Extract pagination
         const pagination = {
             currentPage: parseInt(page),
             totalPages: 1,

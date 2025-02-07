@@ -3,7 +3,6 @@ const cheerio = require("cheerio");
 
 const BASE_URL = "https://animez.org";
 
-// Status and sort options from the HTML
 const STATUS_OPTIONS = {
     all: "All",
     complete: "Complete",
@@ -32,17 +31,14 @@ const scrapeSearch = async (query, options = {}) => {
             page = 1
         } = options;
 
-        // Construct search URL
         const searchUrl = `${BASE_URL}/?act=search&f[status]=${status}&f[sortby]=${sortBy}&f[keyword]=${encodeURIComponent(query)}&pageNum=${page}#pages`;
 
         const response = await axios.get(searchUrl);
         const $ = cheerio.load(response.data);
         
-        // Get current active status and sort
         const activeStatus = $('.Top .row:first-child .btn.active').text().trim().toLowerCase();
         const activeSort = $('.Top .row:nth-child(2) .btn.active').text().trim();
 
-        // Extract available filters
         const statusFilters = [];
         $('.Top .row:first-child .btn').each((_, element) => {
             const btn = $(element);
@@ -63,7 +59,6 @@ const scrapeSearch = async (query, options = {}) => {
             });
         });
 
-        // Extract search results
         const results = [];
         $('.MovieList .TPostMv').each((_, element) => {
             const anime = $(element);
@@ -72,7 +67,6 @@ const scrapeSearch = async (query, options = {}) => {
             const image = anime.find('img').attr('src');
             const episodes = anime.find('.mli-eps').text().trim();
             
-            // Extract ID from URL
             const id = link?.split('/').filter(Boolean).pop() || '';
 
             results.push({
@@ -84,7 +78,6 @@ const scrapeSearch = async (query, options = {}) => {
             });
         });
 
-        // Extract pagination
         const totalPages = $('.pagination .page-item').length;
         const currentPage = $('.pagination .page-item.active .page-link').text();
 
